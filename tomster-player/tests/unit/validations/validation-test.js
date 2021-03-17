@@ -123,4 +123,47 @@ module('Unit | Validations', function(hooks) {
         done()
       });
   });
+
+  test('there is validation error when validated single field', function(assert) {
+    assert.expect(1);
+    const { subject } = this;
+    const done = assert.async();
+
+    subject.validations
+      .validateField('name')
+      .catch(() => {
+        assert.deepEqual(subject.validations.errors.name, ['name is a required field']);
+      })
+      .finally(done);
+  });
+
+  test('there is only one error message when validating field multiple times', function(assert) {
+    assert.expect(1);
+    const { subject } = this;
+    const done = assert.async();
+    
+    Promise.allSettled([
+      subject.validations.validateField('name'),
+      subject.validations.validateField('name'),
+    ])  
+    .then(() => {
+      assert.deepEqual(subject.validations.errors.name, ['name is a required field']);
+      done();
+    })
+  });
+
+  test('there is only one error message when validating all and single field', function(assert) {
+    assert.expect(1);
+    const { subject } = this;
+    const done = assert.async();
+    
+    Promise.allSettled([
+      subject.validations.validateField('name'),
+      subject.validations.validate()
+    ])  
+    .then(() => {
+      assert.deepEqual(subject.validations.errors.name, ['name is a required field']);
+      done();
+    })
+  });
 });

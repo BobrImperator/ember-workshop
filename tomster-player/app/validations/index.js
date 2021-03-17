@@ -7,6 +7,9 @@ class Validation {
   validationError;
 
   @tracked
+  fieldValidationErrors = [];
+
+  @tracked
   validations;
   
   parent = null;
@@ -30,17 +33,15 @@ class Validation {
   }
 
   get validationErrors() {
-    const { validationError } = this;
-    const errors = validationError && validationError.inner;
+    const { validationError, fieldValidationErrors } = this;
+    const errors = [validationError?.inner, ...fieldValidationErrors]
+      .flat()
+      .filter(Boolean);
 
-    if (errors) {
-      return errors.reduce((fieldErrors, fieldValidationError) => {
-        fieldErrors[fieldValidationError.path] = fieldValidationError.errors;
-        return fieldErrors;
-      }, {})
-    }
-
-    return {};
+    return errors.reduce((fieldErrors, fieldValidationError) => {
+      fieldErrors[fieldValidationError.path] = fieldValidationError.errors;
+      return fieldErrors;
+    }, {})
   }
 
   get errors() {
@@ -67,8 +68,24 @@ class Validation {
     });
   }
 
+  validateField(field) {
+    return new Promise((resolve, reject) => {
+      const validationTarget = this.parent;
+      this.validationSchema
+        .validateAt(field, validationTarget, { abortEarly: false, context: this.parent })
+        .then((validationResult) => {
+          return resolve(validationResult);
+        })
+        .catch((validationError) => {
+          this.fieldValidationErrors = [validationError, ...this.fieldValidationErrors];
+          return reject(validationError);
+        })
+    });
+  }
+
   resetErrors() {
-    this.validationError = {}; 
+    this.validationError = {};
+    this.fieldValidationErrors = [];
   }
 }
 

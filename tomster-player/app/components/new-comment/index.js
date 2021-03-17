@@ -60,4 +60,9 @@ export default class NewCommentComponent extends Component {
     this.rating = null;
     this.text = null;
   }
+
+  @action
+  async validateField(field) {
+    await this.validations.validateField(field);
+  }
 }
