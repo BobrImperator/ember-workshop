@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import { render, fillIn, triggerKeyEvent, click } from '@ember/test-helpers';
+import { render, fillIn, triggerKeyEvent, click, focus} from '@ember/test-helpers';
 import Pretender from 'pretender';
 import hbs from 'htmlbars-inline-precompile';
 
@@ -41,12 +41,8 @@ module('Integration | Component | new-comment', function(hooks) {
     assert.dom('[data-test-new-comment-rating-input]').exists();
     assert.dom('[data-test-new-comment-text-input]').exists();
     assert.dom('[data-test-new-comment-submit]').exists();
-  });
-
-  test('it disables the submit button when nothing has been entered', async function(assert) {
-    await render(hbs`<NewComment />`);
-
-    assert.dom('[data-test-new-comment-submit]').isDisabled();
+    assert.dom('[data-test-new-comment-rating-error]').doesNotExist();
+    assert.dom('[data-test-new-comment-text-error]').doesNotExist();
   });
 
   test('it enables the submit button when nothing has been entered', async function(assert) {
@@ -56,6 +52,8 @@ module('Integration | Component | new-comment', function(hooks) {
     await triggerKeyEvent('[data-test-new-comment-text-input]', 'keyup', '…');
 
     assert.dom('[data-test-new-comment-submit]').isNotDisabled();
+    assert.dom('[data-test-new-comment-rating-error]').doesNotExist();
+    assert.dom('[data-test-new-comment-text-error]').doesNotExist();
   });
 
   test('it resets fields once the comment has been saved', async function(assert) {
@@ -67,5 +65,30 @@ module('Integration | Component | new-comment', function(hooks) {
     
     assert.dom('[data-test-new-comment-rating-input]').hasValue('');
     assert.dom('[data-test-new-comment-text-input]').hasValue('');
+    assert.dom('[data-test-new-comment-rating-error]').doesNotExist();
+    assert.dom('[data-test-new-comment-text-error]').doesNotExist();
+  });
+
+  module('Validations', function() {
+    test('when form is submitted without data it shows validation errors', async function(assert) {
+      assert.expect(2);
+      await render(hbs`<NewComment />`);
+      await click('[data-test-new-comment-submit]');
+      
+      assert.dom('[data-test-new-comment-rating-error]').hasText('rating is a required field');
+      assert.dom('[data-test-new-comment-text-error]').hasText('text is a required field');
+    });
+    
+    test('when fields are focused but not data is entered then it show errors', async function(assert) {
+      assert.expect(2);
+      await render(hbs`<NewComment />`);
+      
+      await focus('[data-test-new-comment-rating-input]');
+      await focus('[data-test-new-comment-text-input]');
+      await focus('[data-test-new-comment-rating-input]');
+     
+      assert.dom('[data-test-new-comment-rating-error]').hasText('rating is a required field');
+      assert.dom('[data-test-new-comment-text-error]').hasText('text is a required field');
+    });
   });
 });

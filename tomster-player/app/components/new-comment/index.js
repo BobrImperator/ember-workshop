@@ -48,21 +48,23 @@ export default class NewCommentComponent extends Component {
   @action
   async createComment(event) {
     event.preventDefault();
+
+    await this.validations.validate().catch(() => {});
     
-    await this.validations.validate();
-    
-    let comment = this.store.createRecord('comment', {
-      album: this.args.album,
-      text: this.text,
-      rating: this.rating
-    });
-    await comment.save();
-    this.rating = null;
-    this.text = null;
+    if (this.validations.isValid) {
+      let comment = this.store.createRecord('comment', {
+        album: this.args.album,
+        text: this.text,
+        rating: this.rating
+      });
+      await comment.save();
+      this.rating = null;
+      this.text = null;
+    }
   }
 
   @action
-  async validateField(field) {
-    await this.validations.validateField(field);
+  validateField(field) {
+    this.validations.validateField(field).catch(() => {});
   }
 }

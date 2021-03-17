@@ -53,12 +53,12 @@ class Validation {
   }
 
   validate() {
+      this.resetErrors();
     return new Promise((resolve, reject) => {
       const validationTarget = this.parent;
       this.validationSchema
         .validate(validationTarget, { abortEarly: false, context: this.parent })
         .then((validationResult) => {
-          this.resetErrors();
           return resolve(validationResult);
         })
         .catch((validationError) => {
