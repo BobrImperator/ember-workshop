@@ -90,5 +90,20 @@ module('Integration | Component | new-comment', function(hooks) {
       assert.dom('[data-test-new-comment-rating-error]').hasText('rating is a required field');
       assert.dom('[data-test-new-comment-text-error]').hasText('text is a required field');
     });
+    
+    test('when field has error and filled', async function(assert) {
+      assert.expect(2);
+      await render(hbs`<NewComment />`);
+      
+      await focus('[data-test-new-comment-rating-input]');
+      await focus('[data-test-new-comment-text-input]');
+    
+      await fillIn('[data-test-new-comment-text-input]', 'some text');
+
+      await focus('[data-test-new-comment-submit]');
+     
+      assert.dom('[data-test-new-comment-rating-error]').hasText('rating is a required field');
+      assert.dom('[data-test-new-comment-text-error]').doesNotExist();
+    });
   });
 });
