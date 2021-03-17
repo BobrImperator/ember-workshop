@@ -2,6 +2,8 @@ import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
+import Validation from 'tomster-player/validations';
+import { string } from 'yup';
 
 export default class NewCommentComponent extends Component {
   @service store;
@@ -9,9 +11,14 @@ export default class NewCommentComponent extends Component {
   @tracked rating = null;
   @tracked text = null;
 
-  get submitDisabled() {
-    return !this.rating || !this.text;
-  }
+  validations = new Validation(this, {
+    text: string()
+      .nullable()
+      .required(),
+    rating: string()
+      .nullable()
+      .required()
+  });
 
   get ratingOptions() {
     return [
@@ -41,7 +48,9 @@ export default class NewCommentComponent extends Component {
   @action
   async createComment(event) {
     event.preventDefault();
-
+    
+    await this.validations.validate();
+    
     let comment = this.store.createRecord('comment', {
       album: this.args.album,
       text: this.text,
